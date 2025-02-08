@@ -1,5 +1,5 @@
 const express = require('express');
-const { registrarUsuario, buscarUsuarioPorNombre } = require('./usuarios');
+const { registrarUsuario, buscarUsuarioPorCredenciales } = require('./usuarios');
 const { generarToken, verificarToken } = require('./auth');
 const bcrypt = require('bcryptjs');
 
@@ -10,26 +10,37 @@ app.use(express.json());
 
 // Ruta para registrar un usuario
 app.post('/registrar', (req, res) => {
-  const { nombre, contraseña } = req.body;
-  if (!nombre || !contraseña) {
-    return res.status(400).json({ mensaje: 'Nombre y contraseña son requeridos' });
+  const { username, email, password } = req.body;
+  if (!username || !email || !password) {
+    return res.status(400).json({ mensaje: 'Nombre, correo y contraseña son requeridos' });
   }
 
-  const usuario = registrarUsuario(nombre, contraseña);
-  res.status(201).json({ mensaje: 'Usuario registrado', usuario });
+  registrarUsuario(username, email, password, (err, usuario) => {
+    if (err) {
+      return res.status(500).json({ mensaje: 'Error al registrar el usuario', error: err });
+    }
+    res.status(201).json({ mensaje: 'Usuario registrado', usuario });
+  });
 });
 
 // Ruta para iniciar sesión
 app.post('/login', (req, res) => {
-  const { nombre, contraseña } = req.body;
-  const usuario = buscarUsuarioPorNombre(nombre);
-
-  if (!usuario || !bcrypt.compareSync(contraseña, usuario.contraseña)) {
-    return res.status(401).json({ mensaje: 'Credenciales inválidas' });
+  const { usernameOemail, password } = req.body;
+  if (!usernameOemail || !password) {
+    return res.status(400).json({ mensaje: 'Nombre/Correo y contraseña son requeridos' });
   }
 
-  const token = generarToken(usuario);
-  res.json({ mensaje: 'Inicio de sesión exitoso', token });
+  buscarUsuarioPorCredenciales(usernameOemail, (err, usuario) => {
+    if (err) {
+      return res.status(500).json({ mensaje: 'Error al buscar el usuario', error: err });
+    }
+    if (!usuario || !bcrypt.compareSync(password, usuario.password)) {
+      return res.status(401).json({ mensaje: 'Credenciales inválidas' });
+    }
+
+    const token = generarToken(usuario);
+    res.json({ mensaje: 'Inicio de sesión exitoso', token });
+  });
 });
 
 // Ruta protegida (solo accesible con token válido)
@@ -39,5 +50,5 @@ app.get('/modulo-protegido', verificarToken, (req, res) => {
 
 // Iniciar el servidor
 app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${8080}`);
+  console.log(`Servidor corriendo en http://localhost:${port}`);
 });

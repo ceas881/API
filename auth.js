@@ -5,7 +5,7 @@ const SECRETO = 'mi_secreto_super_seguro'; // Clave secreta para firmar tokens
 
 // Función para generar un token JWT
 function generarToken(usuario) {
-  return jwt.sign({ id: usuario.id, nombre: usuario.nombre }, SECRETO, {
+  return jwt.sign({ id: usuario.id, username: usuario.username }, SECRETO, {
     expiresIn: '1h', // El token expira en 1 hora
   });
 }

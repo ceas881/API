@@ -1,20 +1,24 @@
+const conexion = require('./db');
 const bcrypt = require('bcryptjs');
 
-// Simulación de una base de datos en memoria
-let usuarios = [];
-
 // Función para registrar un usuario
-function registrarUsuario(nombre, contraseña) {
-  const id = usuarios.length + 1;
-  const hash = bcrypt.hashSync(contraseña, 10); // Encriptar la contraseña
-  const usuario = { id, nombre, contraseña: hash };
-  usuarios.push(usuario);
-  return usuario;
+function registrarUsuario(username, email, password, callback) {
+  //const hash = bcrypt.hashSync(password, 10); // Encriptar la contraseña
+  const query = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+  conexion.query(query, [username, email, hash], (err, results) => {
+    if (err) return callback(err);
+    callback(null, { id: results.insertId, username, email });
+  });
 }
 
-// Función para buscar un usuario por nombre
-function buscarUsuarioPorNombre(nombre) {
-  return usuarios.find(u => u.nombre === nombre);
+// Función para buscar un usuario por nombre o correo
+function buscarUsuarioPorCredenciales(usernameOemail, callback) {
+  const query = 'SELECT * FROM users WHERE username = ? OR email = ?';
+  conexion.query(query, [usernameOemail, usernameOemail], (err, results) => {
+    if (err) return callback(err);
+    if (results.length === 0) return callback(null, null); // Usuario no encontrado
+    callback(null, results[0]);
+  });
 }
 
-module.exports = { registrarUsuario, buscarUsuarioPorNombre };
+module.exports = { registrarUsuario, buscarUsuarioPorCredenciales };
