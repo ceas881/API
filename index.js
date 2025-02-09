@@ -30,15 +30,24 @@ app.post('/login', (req, res) => {
     return res.status(400).json({ mensaje: 'Nombre/Correo y contraseña son requeridos' });
   }
 
-  buscarUsuarioPorCredenciales(usernameOemail, (err, usuario) => {
+  buscarUsuarioPorCredenciales(usernameOemail, (err, usuario) => { // Buscar al usuario en la base de datos
     if (err) {
       return res.status(500).json({ mensaje: 'Error al buscar el usuario', error: err });
     }
-    if (!usuario || !bcrypt.compareSync(password, usuario.password)) {
-      return res.status(401).json({ mensaje: 'Credenciales inválidas' });
-    }
+    /*if (!usuario || !bcrypt.compareSync(password, usuario.password)) { // Comparar la contraseña ingresada con la contraseña encriptada en la base de datos
+      return res.status(401).json({ mensaje: 'Credenciales inválidas' });// Verificar si el usuario existe y si la contraseña es correcta
+    }*/
+      // Verificar si el usuario existe
+      if (!usuario) {
+        return res.status(401).json({ mensaje: 'Credenciales inválidas' });
+      }
+  
+      // Comparar la contraseña proporcionada con la contraseña encriptada
+      if (!bcrypt.compareSync(password, usuario.password)) {
+        return res.status(401).json({ mensaje: 'Credenciales inválidas' });
+      }
 
-    const token = generarToken(usuario);
+    const token = generarToken(usuario); // Si todo es correcto, generar un token para el usuario  
     res.json({ mensaje: 'Inicio de sesión exitoso', token });
   });
 });

@@ -1,9 +1,9 @@
 const conexion = require('./db');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs'); // bcryptjs libreria para encriptar contraseñas
 
 // Función para registrar un usuario
 function registrarUsuario(username, email, password, callback) {
-  //const hash = bcrypt.hashSync(password, 10); // Encriptar la contraseña
+  const hash = bcrypt.hashSync(password, 10); // Encriptar la contraseña, El número 10 es el "salt" (nivel de seguridad)
   const query = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
   conexion.query(query, [username, email, hash], (err, results) => {
     if (err) return callback(err);
